@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//  Tabela da barbearia
+model Barbershop {
+  id          String              @id @default(uuid())
+  name        String
+  address     String
+  description String
+  imageUrl    String // ATENÇÃO : nunca salve a imagem em si no banco de dados , é melhor salvar a URL da imagem na AWS por exemplo
+  phones      String[] // Lista de Strings
+  services    BarbershopService[]
+}
+
+// Tabela dos serviços
+model BarbershopService {
+  id           String     @id @default(uuid())
+  name         String
+  description  String
+  imageUrl     String
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id]) // Estou colocando uma foreign key ( chave estrangeira ) da tabela Barbershop para a BarbershopServices
+  priceInCents Int // Não valores monetarios em decimais no banco , com exceção de aplicações que tenham casas decimais muito grande ex: bitcoin
+}
+
+model Booking {
+  id           String    @id @default(uuid())
+  serviceId    String
+  barbershopId String
+  date         DateTime  @db.Timestamptz // Melhor forma de salvar horario no banco de dados é em UTC 
+  canceled     Boolean?  @default(false) // é opcional esse campo
+  canceledAt   DateTime? @db.Timestamptz // Para saber quando foi cancelada / é opcional esse campo 
+}
